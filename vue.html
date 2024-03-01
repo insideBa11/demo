@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            height: 200vh;
+        }
+
+        .circle-container {
+            position: fixed;
+            top: 30%;
+            left: 30%;
+            width: 100vw;
+            height: 100vw;
+            margin: auto;
+            transition: transform 0.8s ease-in-out;
+        }
+
+        .circle-item {
+            position: absolute;
+            width: 10%;
+            height: 10%;
+            border-radius: 10px;
+        }
+
+        .item1 {
+            top: 0;
+            left: 50%;
+            background-color: cadetblue;
+            transform: translateX(-50%);
+        }
+
+        .item2 {
+            top: 50%;
+            right: 0;
+            background-color: brown;
+            transform: translateY(-50%);
+        }
+
+        .item3 {
+            bottom: 0;
+            left: 50%;
+            background-color: darkgreen;
+            transform: translateX(-50%);
+        }
+
+        .item4 {
+            top: 50%;
+            left: 0;background-color: goldenrod;
+            transform: translateY(-50%);
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+</head>
+<body>
+<div class="circle-container" id="app" :style="{ transform: 'rotate(' + this.rotationAngle + 'deg)' }">
+    <div class="circle-item item1"></div>
+    <div class="circle-item item2"></div>
+    <div class="circle-item item3"></div>
+    <div class="circle-item item4"></div>
+</div>
+
+<script>
+
+    const vueContainer = new Vue({
+        el: '#app',
+        data: {
+            scrollDistance: 0, // 滚动条滚到底部所需的距离
+            scrollPosition: 0, // 滚动条当前位置
+            targetPositions: [0],
+            scoAngles: [0, 90, 180, 270], // 每次切换的角度
+            key: true,
+            rotationAngle: 0, // 滚动条每滚动1px，图像需要旋转的角度
+            nearestTarget: 0,
+            interval: 0, // 滚动条滚动多远运行动画
+        },
+        methods: {
+            scroll() {
+                if (this.key) {
+                    this.scrollDistance = document.documentElement.scrollHeight - window.innerHeight - this.scrollPosition;
+                    this.interval = this.scrollDistance / 3;
+                    this.getTarget();
+                    this.key = false;
+                }
+                this.rotationAngle = this.scrollPosition * (90 / this.interval);
+                this.scrollPosition = window.scrollY;
+                this.getNearestTarget()
+                this.adjustPos()
+            },
+            // 将页面高度分为4个部分，每个部分对应一个1/4圆
+            getTarget() {
+                for (let i = 1; i < 4; i++) {
+                    this.targetPositions[i] = this.interval * i;
+                }
+            },
+            // 得到距离最近的1/4圆
+            getNearestTarget() {
+                this.nearestTarget = this.targetPositions.reduce(this.arrReduce)
+                console.log(this.nearestTarget);
+            },
+            arrReduce(prev, curr) { // 将reduce函数的this改为vue实例
+                // console.log(prev, curr);
+                return (Math.abs(curr - this.scrollPosition) < Math.abs(prev - this.scrollPosition) ? curr : prev);
+            },
+            // 将动画切换为距离最近的1/4圆
+            adjustPos() {
+                if (Math.abs(this.nearestTarget - this.scrollPosition) <= 0.8 * this.interval) {
+                    let i = this.targetPositions.indexOf(this.nearestTarget);
+                    this.rotationAngle = this.scoAngles[i];
+                }
+            }
+        },
+        mounted() {
+            window.addEventListener('scroll', this.scroll);
+            // this.scroll()
+        }
+    })
+</script>
+</body>
+</html>
